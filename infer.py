@@ -13,7 +13,7 @@ import typer
 
 FPATH_INSTRUCTION = "instruction.txt"
 FPATH_IMAGES = "data/preprocessed/"
-FPATH_RESULTS = "annotated_tmp.json"
+FPATH_RESULTS = "data/annotated_tmp.json"
 env.read_env()
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -23,7 +23,7 @@ app = typer.Typer(add_completion=False, context_settings=CONTEXT_SETTINGS)
 @app.command()
 def main(
     n_samples: int = typer.Option(
-        10,
+        100,
         "--n-samples", "-n",
         help="Number of samples to infer.",
     ),
