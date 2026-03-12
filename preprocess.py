@@ -43,7 +43,7 @@ def preprocess(img):
     imarr = np.concatenate((imarr[:90], imarr[280:]), axis=0)
     imarr[70:95] = 0
     imarr[130:160] = 0
-    imarr[95:105, :492] = 0
+    imarr[95:105, :440] = 0
     imarr[120:130, 492:] = 0
     imarr[95:120, 635:] = 0
     imarr[242:290, 15:250] = 0
