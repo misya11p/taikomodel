@@ -12,8 +12,7 @@ import typer
 
 
 FPATH_INSTRUCTION = "instruction.txt"
-FPATH_IMAGES = "data/preprocessed/"
-FPATH_RESULTS = "data/annotated_tmp.json"
+DPATH_IMAGES = "data/preprocessed/"
 env.read_env()
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -30,21 +29,30 @@ def main(
     model: str = typer.Option(
         "qwen/qwen3.5-35b-a3b",
         "--model", "-m",
-        help="Model name to use for inference.",
-    )
+        help="OpenRouter model id to use for inference.",
+    ),
+    fpath_output: str = typer.Option(
+        None,
+        "--output", "-o",
+        help=(
+            "File path to save the inference results. "
+            r"Defaults to 'results_{model_name}.json' if not specified."
+        ),
+    ),
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
     client = AsyncOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=env("OPENROUTER_API_KEY")
     )
-    images = list(Path(FPATH_IMAGES).glob("*.jpg"))
+    images = list(Path(DPATH_IMAGES).glob("*.jpg"))
     images = random.sample(images, min(n_samples, len(images)))
+    fpath_output = fpath_output or f"results_{model.split('/')[-1]}.json"
 
-    asyncio.run(run(model, instruction, client, images))
+    asyncio.run(run(fpath_output, model, instruction, client, images))
 
 
-async def run(model, instruction, client, images):
+async def run(fpath_output, model, instruction, client, images):
     results = await asyncio.gather(*[
         call_api(client, model, instruction, fpath) for fpath in images
     ])
@@ -54,7 +62,7 @@ async def run(model, instruction, client, images):
 
     results = {fpath: data for fpath, data, _ in results}
     results = dict(sorted(results.items()))
-    with open(FPATH_RESULTS, "w") as f:
+    with open(fpath_output, "w") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
 
