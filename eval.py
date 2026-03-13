@@ -19,16 +19,21 @@ def main(
         help="File path containing the annotated labels for evaluation."
     ),
     fpath_output: str = typer.Option(
-        "eval_results.txt",
+        None,
         "--output", "-o",
-        help="File path to save the evaluation results."
+        help=(
+            "File path to save the evaluation results. "
+            r"Defaults to {fpath_input}.eval.txt if not specified."
+        )
     )
 ):
     with open(fpath_input) as f:
         preds = json.load(f)
     with open(fpath_annotated) as f:
         annotated = json.load(f)
+    fpath_output = fpath_output or f"{fpath_input.rsplit('.', 1)[0]}.eval.txt"
 
+    correct_keys = []
     name_errors = []
     num_errors = []
     n_matches = 0
@@ -41,6 +46,7 @@ def main(
         score_name, score_num = get_score(pred, label)
         if score_name == 1.0 and score_num == 1.0:
             n_matches += 1
+            correct_keys.append(key)
         if score_name == 1.0:
             n_matches_name += 1
         else:
@@ -75,9 +81,12 @@ def main(
         f.write("\n数値エラー:\n")
         for key, pred, label, score in num_errors:
             f.write(f"{key}: {pred} - {label}\n")
+        f.write("\n完全一致:\n")
+        for key in correct_keys:
+            f.write(f"{key}\n")
 
     print("\n".join(lines))
-    print(f"Saeved evaluation results to {fpath_output}")
+    print(f"Saved evaluation results to {fpath_output}")
 
 
 columns = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
