@@ -97,7 +97,8 @@ def main(
     summarize(fpath_output_summary, stats, classes, cost)
 
     print(f"Total cost: ${cost:.4f}")
-    print(f"Saved inference results to {fpath_output}, summary to {fpath_output_summary}")
+    print(f"Saved inference results to {fpath_output}")
+    print(f"Saved summary to {fpath_output_summary}")
 
 
 async def run(model, instruction, client, images, reasoning):
