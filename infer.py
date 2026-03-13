@@ -3,6 +3,7 @@ import json
 import re
 from pathlib import Path
 import asyncio
+import time
 
 from openai import AsyncOpenAI
 from environs import env
@@ -49,6 +50,11 @@ def main(
             "Defaults to all samples if not specified."
         )
     ),
+    reasoning: bool = typer.Option(
+        False,
+        "--reasoning",
+        help="Whether to enable reasoning in the API call."
+    )
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
     client = AsyncOpenAI(
@@ -62,13 +68,15 @@ def main(
         images = images[:n_samples]
     fpath_output = fpath_output or f"results_{model.split('/')[-1]}.json"
     pbar = tqdm(total=len(images))
-    asyncio.run(run(fpath_output, model, instruction, client, images, pbar))
+    asyncio.run(run(
+        fpath_output, model, instruction, client, images, reasoning, pbar
+    ))
     print(f"Saved results to {fpath_output}")
 
 
-async def run(fpath_output, model, instruction, client, images, pbar):
+async def run(fpath_output, model, instruction, client, images, reasoning, pbar):
     results = await asyncio.gather(*[
-        call_api(client, model, instruction, fpath, pbar) for fpath in images
+        call_api(client, model, instruction, fpath, reasoning, pbar) for fpath in images
     ])
 
     cost = sum(result[2] for result in results)
@@ -85,7 +93,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-async def call_api(client, model, instruction, fpath_image, pbar):
+async def call_api(client, model, instruction, fpath_image, reasoning, pbar):
     response = await client.chat.completions.create(
         model=model,
         messages=[
@@ -110,7 +118,7 @@ async def call_api(client, model, instruction, fpath_image, pbar):
                 ],
             },
         ],
-        extra_body={"reasoning": {"enabled": False}},
+        extra_body={"reasoning": {"enabled": reasoning}},
     )
     res = response.choices[0].message.content
     cost = response.usage.cost
