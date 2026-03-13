@@ -6,8 +6,8 @@ import asyncio
 
 from openai import AsyncOpenAI
 from environs import env
-
 import typer
+from tqdm import tqdm
 
 
 FPATH_INSTRUCTION = "instruction.txt"
@@ -61,13 +61,14 @@ def main(
     if n_samples is not None:
         images = images[:n_samples]
     fpath_output = fpath_output or f"results_{model.split('/')[-1]}.json"
-    asyncio.run(run(fpath_output, model, instruction, client, images))
+    pbar = tqdm(total=len(images))
+    asyncio.run(run(fpath_output, model, instruction, client, images, pbar))
     print(f"Saved results to {fpath_output}")
 
 
-async def run(fpath_output, model, instruction, client, images):
+async def run(fpath_output, model, instruction, client, images, pbar):
     results = await asyncio.gather(*[
-        call_api(client, model, instruction, fpath) for fpath in images
+        call_api(client, model, instruction, fpath, pbar) for fpath in images
     ])
 
     cost = sum(result[2] for result in results)
@@ -84,7 +85,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-async def call_api(client, model, instruction, fpath_image):
+async def call_api(client, model, instruction, fpath_image, pbar):
     response = await client.chat.completions.create(
         model=model,
         messages=[
@@ -115,6 +116,7 @@ async def call_api(client, model, instruction, fpath_image):
     cost = response.usage.cost
     json_str = re.search(r'\{.*\}', res, re.DOTALL).group(0)
     data = json.loads(json_str)
+    pbar.update(1)
     return fpath_image.name, data, cost
 
 
