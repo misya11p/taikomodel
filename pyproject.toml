@@ -8,6 +8,7 @@ dependencies = [
     "environs>=14.6.0",
     "numpy>=2.4.3",
     "openai>=2.26.0",
+    "pandas>=3.0.1",
     "pillow>=12.1.1",
     "tqdm>=4.67.3",
     "typer>=0.24.1",
