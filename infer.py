@@ -2,7 +2,6 @@ import base64
 import json
 import re
 from pathlib import Path
-import random
 import asyncio
 
 from openai import AsyncOpenAI
@@ -21,15 +20,18 @@ app = typer.Typer(add_completion=False, context_settings=CONTEXT_SETTINGS)
 
 @app.command()
 def main(
-    n_samples: int = typer.Option(
-        100,
-        "--n-samples", "-n",
-        help="Number of samples to infer.",
-    ),
     model: str = typer.Option(
         "qwen/qwen3.5-35b-a3b",
         "--model", "-m",
         help="OpenRouter model id to use for inference.",
+    ),
+    fpath_input: str = typer.Option(
+        "data/eval.txt",
+        "--input", "-i",
+        help=(
+            "File path containing the list of image file names to run "
+            "inference on. "
+        ),
     ),
     fpath_output: str = typer.Option(
         None,
@@ -39,17 +41,28 @@ def main(
             r"Defaults to 'results_{model_name}.json' if not specified."
         ),
     ),
+    n_samples: int = typer.Option(
+        None,
+        "--n-samples", "-n",
+        help=(
+            "Number of samples to run inference on. "
+            "Defaults to all samples if not specified."
+        )
+    ),
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
     client = AsyncOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=env("OPENROUTER_API_KEY")
     )
-    images = list(Path(DPATH_IMAGES).glob("*.jpg"))
-    images = random.sample(images, min(n_samples, len(images)))
+    dpath_images = Path(DPATH_IMAGES)
+    with open(fpath_input) as f:
+        images = [dpath_images / line.strip() for line in f if line.strip()]
+    if n_samples is not None:
+        images = images[:n_samples]
     fpath_output = fpath_output or f"results_{model.split('/')[-1]}.json"
-
     asyncio.run(run(fpath_output, model, instruction, client, images))
+    print(f"Saved results to {fpath_output}")
 
 
 async def run(fpath_output, model, instruction, client, images):
