@@ -94,23 +94,7 @@ def main(
         json.dump(out, f, ensure_ascii=False, indent=2)
 
     fpath_output_summary = fpath_output.with_suffix(".summary.txt")
-    with open(fpath_output_summary, "w") as f:
-        f.write("Evaluation Summary\n")
-        f.write("==================\n\n")
-        f.write(f"Total Cost: ${cost:.4f}\n")
-        f.write("\nStatistics:\n")
-        for stat_name, stat_value in stats.items():
-            f.write(f"- {stat_name}: {stat_value:.4f}\n")
-        f.write("\n曲名エラー:\n")
-        for key, pred_name, label_name, score in classes["曲名エラー"]:
-            f.write(f"{key}: '{pred_name}' - '{label_name}' ({score:.4f})\n")
-        f.write("\n数値エラー:\n")
-        for key, pred, label, score in classes["数値エラー"]:
-            f.write(f"{key}: {pred} - {label}\n")
-        f.write("\n完全一致:\n")
-        for key in classes["完全一致"]:
-            f.write(f"{key}\n")
-
+    summarize(fpath_output_summary, stats, classes, cost)
 
     print(f"Total cost: ${cost:.4f}")
     print(f"Saved inference results to {fpath_output}, summary to {fpath_output_summary}")
@@ -214,6 +198,25 @@ def evaluate(results, annotated):
         "数値エラー": num_errors,
     }
     return stats, classes
+
+
+def summarize(fpath_output_summary, stats, classes, cost):
+    with open(fpath_output_summary, "w") as f:
+        f.write("Evaluation Summary\n")
+        f.write("==================\n\n")
+        f.write(f"Total Cost: ${cost:.4f}\n")
+        f.write("\nStatistics:\n")
+        for stat_name, stat_value in stats.items():
+            f.write(f"- {stat_name}: {stat_value:.4f}\n")
+        f.write("\n曲名エラー:\n")
+        for key, pred_name, label_name, score in classes["曲名エラー"]:
+            f.write(f"{key}: '{pred_name}' - '{label_name}' ({score:.4f})\n")
+        f.write("\n数値エラー:\n")
+        for key, pred, label, score in classes["数値エラー"]:
+            f.write(f"{key}: {pred} - {label}\n")
+        f.write("\n完全一致:\n")
+        for key in classes["完全一致"]:
+            f.write(f"{key}\n")
 
 
 if __name__ == "__main__":
