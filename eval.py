@@ -16,6 +16,7 @@ BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
 BASE_URL_OLLAMA = "http://localhost:11434/v1"
 FPATH_INSTRUCTION = "instruction.txt"
 DPATH_IMAGES = "data/preprocessed/"
+DPATH_DEFAULT_OUTPUT = "data/experiment_results/"
 COLUMNS_NUM = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -67,7 +68,7 @@ def main(
         "--output", "-o",
         help=(
             "File path to save the inference results. "
-            r"Defaults to 'results_{model_name}.json' if not specified."
+            f"Defaults to '{DPATH_DEFAULT_OUTPUT}<model_name>.json'."
         ),
     ),
     fpath_annotated: str = typer.Option(
@@ -98,13 +99,19 @@ def main(
         base_url=base_url,
         api_key=api_key or env("OPENROUTER_API_KEY")
     )
+
     dpath_images = Path(DPATH_IMAGES)
     with open(list) as f:
         images = [dpath_images / line.strip() for line in f if line.strip()]
     if n_samples is not None:
         images = images[:n_samples]
-    fpath_output = fpath_output or f"results_{model.split('/')[-1]}.json"
-    fpath_output = Path(fpath_output)
+
+    if fpath_output:
+        fpath_output = Path(fpath_output)
+    else:
+        fpath_output = Path(DPATH_DEFAULT_OUTPUT) / f"{model.split('/')[-1]}.json"
+    fpath_output.parent.mkdir(parents=True, exist_ok=True)
+
     with open(fpath_annotated) as f:
         annotated = json.load(f)
 
