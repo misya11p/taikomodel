@@ -15,7 +15,7 @@ env.read_env()
 BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
 BASE_URL_OLLAMA = "http://localhost:11434/v1"
 DPATH_IMAGES = "data/preprocessed/"
-DPATH_DEFAULT_OUTPUT = "data/experiment_results/"
+DPATH_DEFAULT_OUTPUT = "data/experiments/"
 FPATH_INSTRUCTION = "instruction.txt"
 FPATH_ANNOTATED = "data/annotated.json"
 COLUMNS_NUM = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
