@@ -3,6 +3,7 @@ import json
 import random
 
 from datasets import Dataset, Features, Value, Image
+from datasets.table import embed_table_storage
 import typer
 
 
@@ -55,19 +56,22 @@ def split(data, n_eval, seed):
 
 def create_dataset(data):
     dpath_images = Path(DPATH_IMAGES)
-    ds_dict = {
-        "text": [],
-        "image": [],
-    }
+    texts, images = [], []
     for k, v in data.items():
-        ds_dict["text"].append(json.dumps(v, ensure_ascii=False, indent=2))
-        ds_dict["image"].append(str(dpath_images / k))
-
+        texts.append(json.dumps(v, ensure_ascii=False, indent=2))
+        images.append(str(dpath_images / k))
     features = Features({
         "text": Value("string"),
         "image": Image(),
     })
-    ds = Dataset.from_dict(ds_dict, features=features)
+    ds = Dataset.from_dict(
+        {"text": texts, "image": images},
+        features=features
+    )
+    format = ds.format
+    ds = ds.with_format("arrow")
+    ds = ds.map(embed_table_storage, batched=True)
+    ds = ds.with_format(**format)
     return ds
 
 
