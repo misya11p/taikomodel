@@ -37,7 +37,7 @@ def main(
         help=(
             "Number of samples to run inference on. "
             "Defaults to all samples if not specified."
-        )
+        ),
     ),
     reasoning_effort: str = typer.Option(
         "none",
@@ -45,7 +45,7 @@ def main(
         help=(
             "The level of reasoning to enable in the API call. "
             "Options are 'high', 'medium', 'low', or 'none'. "
-        )
+        ),
     ),
     ollama: bool = typer.Option(
         False,
@@ -54,7 +54,7 @@ def main(
             "Whether to use Ollama for local inference. If enabled, "
             "the base URL will automatically be set to "
             "'http://localhost:11434/v1'."
-        )
+        ),
     ),
     list: str = typer.Option(
         "data/eval.txt",
@@ -78,7 +78,7 @@ def main(
         help=(
             "Base URL for the API. If not specified, it will be set "
             "to OpenRouter's URL."
-        )
+        ),
     ),
     api_key: str = typer.Option(
         None,
