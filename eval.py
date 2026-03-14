@@ -11,10 +11,12 @@ import typer
 from tqdm import tqdm
 
 
+env.read_env()
+BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
+BASE_URL_OLLAMA = "http://localhost:11434/v1"
 FPATH_INSTRUCTION = "instruction.txt"
 DPATH_IMAGES = "data/preprocessed/"
 COLUMNS_NUM = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
-env.read_env()
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 app = typer.Typer(add_completion=False, context_settings=CONTEXT_SETTINGS)
@@ -27,18 +29,30 @@ def main(
         "--model", "-m",
         help="Model id to use for inference.",
     ),
-    base_url: str = typer.Option(
-        "https://openrouter.ai/api/v1",
-        "--base-url", "-b",
-        help="Base URL for the API.",
-    ),
-    api_key: str = typer.Option(
+    n_samples: int = typer.Option(
         None,
-        "--api-key", "-k",
+        "--n-samples", "-n",
         help=(
-            "API key for authentication. Defaults to the value of the "
-            "OPENROUTER_API_KEY environment variable."
-        ),
+            "Number of samples to run inference on. "
+            "Defaults to all samples if not specified."
+        )
+    ),
+    reasoning_effort: str = typer.Option(
+        "none",
+        "--reasoning",
+        help=(
+            "The level of reasoning to enable in the API call. "
+            "Options are 'high', 'medium', 'low', or 'none'. "
+        )
+    ),
+    ollama: bool = typer.Option(
+        False,
+        "--ollama",
+        help=(
+            "Whether to use Ollama for local inference. If enabled, "
+            "the base URL will automatically be set to "
+            "'http://localhost:11434/v1'."
+        )
     ),
     list: str = typer.Option(
         "data/eval.txt",
@@ -61,24 +75,25 @@ def main(
         "--annotated", "-a",
         help="File path containing the annotated labels for evaluation."
     ),
-    n_samples: int = typer.Option(
+    base_url: str = typer.Option(
         None,
-        "--n-samples", "-n",
+        "--base-url", "-b",
         help=(
-            "Number of samples to run inference on. "
-            "Defaults to all samples if not specified."
+            "Base URL for the API. If not specified, it will be set "
+            "to OpenRouter's URL."
         )
     ),
-    reasoning_effort: str = typer.Option(
-        "none",
-        "--reasoning",
+    api_key: str = typer.Option(
+        None,
+        "--api-key", "-k",
         help=(
-            "The level of reasoning to enable in the API call. "
-            "Options are 'high', 'medium', 'low', or 'none'. "
-        )
-    )
+            "API key for authentication. Defaults to the value of the "
+            "OPENROUTER_API_KEY environment variable."
+        ),
+    ),
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
+    base_url = base_url or (BASE_URL_OLLAMA if ollama else BASE_URL_OPENROUTER)
     client = AsyncOpenAI(
         base_url=base_url,
         api_key=api_key or env("OPENROUTER_API_KEY")
