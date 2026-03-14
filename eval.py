@@ -234,6 +234,7 @@ def evaluate(results, annotated):
         "数値完全一致率": rate_match_num,
         "曲名平均スコア": avg_score_name,
         "数値平均スコア": avg_score_num,
+        "サンプル数": n,
     }
     classes = {
         "完全一致": correct_keys,
@@ -251,7 +252,7 @@ def summarize(fpath_output_summary, stats, classes, cost):
         f.write(f"Total Cost: ${cost:.4f}\n")
         f.write("\nStatistics:\n")
         for stat_name, stat_value in stats.items():
-            f.write(f"- {stat_name}: {stat_value:.4f}\n")
+            f.write(f"- {stat_name}: {stat_value}\n")
         f.write("\n曲名エラー:\n")
         for key, pred_name, label_name, score in classes["曲名エラー"]:
             f.write(f"{key}: '{pred_name}' - '{label_name}' ({score:.4f})\n")
