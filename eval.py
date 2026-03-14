@@ -149,11 +149,14 @@ async def call_api(client, model, instruction, fpath_image, reasoning_effort, pb
     )
     res = response.choices[0].message.content
     cost = response.usage.model_dump().get("cost", 0)
-    json_str = re.search(r'\{.*\}', res, re.DOTALL).group(0)
-    try:
-        data = json.loads(json_str)
-    except json.JSONDecodeError:
-        data = {"error": f"Invalid JSON: {json_str}"}
+    if match := re.search(r'\{.*\}', res, re.DOTALL):
+        json_str = match.group(0)
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError:
+            data = {"error": f"Invalid JSON: {json_str}"}
+    else:
+        data = {"error": f"No JSON found in response: {res}"}
     pbar.update(1)
     return fpath_image.name, data, cost
 
