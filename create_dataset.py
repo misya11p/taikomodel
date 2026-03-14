@@ -29,11 +29,6 @@ def main(
         "--seed", "-s",
         help="Random seed for splitting the dataset.",
     ),
-    dpath_dataset: str = typer.Option(
-        "data/",
-        "--dpath-dataset", "-d",
-        help="Path to the output dataset directory.",
-    ),
 ):
     with open(FPATH_ANNOTATED, "r") as f:
         data = json.load(f)
