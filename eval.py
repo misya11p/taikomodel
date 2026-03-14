@@ -14,9 +14,10 @@ from tqdm import tqdm
 env.read_env()
 BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
 BASE_URL_OLLAMA = "http://localhost:11434/v1"
-FPATH_INSTRUCTION = "instruction.txt"
 DPATH_IMAGES = "data/preprocessed/"
 DPATH_DEFAULT_OUTPUT = "data/experiment_results/"
+FPATH_INSTRUCTION = "instruction.txt"
+FPATH_ANNOTATED = "data/annotated.json"
 COLUMNS_NUM = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -71,11 +72,6 @@ def main(
             f"Defaults to '{DPATH_DEFAULT_OUTPUT}<model_name>.json'."
         ),
     ),
-    fpath_annotated: str = typer.Option(
-        "data/annotated.json",
-        "--annotated", "-a",
-        help="File path containing the annotated labels for evaluation."
-    ),
     base_url: str = typer.Option(
         None,
         "--base-url", "-b",
@@ -112,7 +108,7 @@ def main(
         fpath_output = Path(DPATH_DEFAULT_OUTPUT) / f"{model.split('/')[-1]}.json"
     fpath_output.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(fpath_annotated) as f:
+    with open(FPATH_ANNOTATED) as f:
         annotated = json.load(f)
 
     results = asyncio.run(run(
