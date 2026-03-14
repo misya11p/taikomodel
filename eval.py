@@ -158,7 +158,10 @@ async def call_api(client, model, instruction, fpath_image, reasoning, pbar):
     res = response.choices[0].message.content
     cost = response.usage.model_dump().get("cost", 0)
     json_str = re.search(r'\{.*\}', res, re.DOTALL).group(0)
-    data = json.loads(json_str)
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError:
+        data = {"error": f"Invalid JSON: {json_str}"}
     pbar.update(1)
     return fpath_image.name, data, cost
 
@@ -167,6 +170,7 @@ def evaluate(results, annotated):
     correct_keys = []
     name_errors = []
     num_errors = []
+    json_errors = []
     n_matches = 0
     n_matches_name = 0
     n_matches_num = 0
@@ -175,6 +179,10 @@ def evaluate(results, annotated):
 
     for key, pred in results.items():
         label = annotated[key]
+        if "error" in pred:
+            json_errors.append((key, pred["error"]))
+            continue
+
         score_name = SequenceMatcher(None, pred["曲名"], label["曲名"]).ratio()
         score_num = sum([pred[idx] == label[idx] for idx in COLUMNS_NUM])
         score_num /= len(COLUMNS_NUM)
@@ -210,6 +218,7 @@ def evaluate(results, annotated):
         "完全一致": correct_keys,
         "曲名エラー": name_errors,
         "数値エラー": num_errors,
+        "JSONエラー": json_errors,
     }
     return stats, classes
 
@@ -228,6 +237,9 @@ def summarize(fpath_output_summary, stats, classes, cost):
         f.write("\n数値エラー:\n")
         for key, pred, label, score in classes["数値エラー"]:
             f.write(f"{key}: {pred} - {label}\n")
+        f.write("\nJSONエラー:\n")
+        for key, error in classes["JSONエラー"]:
+            f.write(f"{key}: {error}\n")
         f.write("\n完全一致:\n")
         for key in classes["完全一致"]:
             f.write(f"{key}\n")
