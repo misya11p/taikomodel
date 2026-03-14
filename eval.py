@@ -69,10 +69,13 @@ def main(
             "Defaults to all samples if not specified."
         )
     ),
-    reasoning: bool = typer.Option(
-        False,
+    reasoning_effort: str = typer.Option(
+        "none",
         "--reasoning",
-        help="Whether to enable reasoning in the API call."
+        help=(
+            "The level of reasoning to enable in the API call. "
+            "Options are 'high', 'medium', 'low', or 'none'. "
+        )
     )
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
@@ -91,7 +94,7 @@ def main(
         annotated = json.load(f)
 
     results = asyncio.run(run(
-        model, instruction, client, images, reasoning
+        model, instruction, client, images, reasoning_effort
     ))
     cost = sum(result[2] for result in results)
     results = {fpath: data for fpath, data, _ in results}
@@ -128,32 +131,21 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-async def call_api(client, model, instruction, fpath_image, reasoning, pbar):
+async def call_api(client, model, instruction, fpath_image, reasoning_effort, pbar):
+    image_url = f"data:image/jpeg;base64,{encode_image(fpath_image)}"
     response = await client.chat.completions.create(
         model=model,
         messages=[
             {
                 "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": instruction,
-                    }
-                ]
+                "content": [{"type": "text", "text": instruction}]
             },
             {
                 "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{encode_image(fpath_image)}"
-                        },
-                    }
-                ],
+                "content": [{"type": "image_url", "image_url": {"url": image_url}}],
             },
         ],
-        extra_body={"reasoning": {"enabled": reasoning}},
+        reasoning_effort=reasoning_effort,
     )
     res = response.choices[0].message.content
     cost = response.usage.model_dump().get("cost", 0)
