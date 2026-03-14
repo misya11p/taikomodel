@@ -10,6 +10,8 @@ DPATH_IMAGES = "data/preprocessed/"
 FPATH_ANNOTATED = "data/annotated.json"
 FPATH_TRAIN = "data/train.txt"
 FPATH_EVAL = "data/eval.txt"
+FPATH_PARQUET_TRAIN = "data/train.parquet"
+FPATH_PARQUET_EVAL = "data/eval.parquet"
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 app = typer.Typer(add_completion=False, context_settings=CONTEXT_SETTINGS)
@@ -43,10 +45,8 @@ def main(
         ft.write("\n".join(train_data.keys()))
         fe.write("\n".join(eval_data.keys()))
 
-    dpath_dataset = Path(dpath_dataset)
-    dpath_dataset.mkdir(parents=True, exist_ok=True)
-    ds_train.to_parquet(dpath_dataset / "train.parquet")
-    ds_eval.to_parquet(dpath_dataset / "eval.parquet")
+    ds_train.to_parquet(FPATH_PARQUET_TRAIN)
+    ds_eval.to_parquet(FPATH_PARQUET_EVAL)
 
 
 def split(data, n_eval, seed):
