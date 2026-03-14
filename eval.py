@@ -25,7 +25,20 @@ def main(
     model: str = typer.Option(
         "qwen/qwen3.5-35b-a3b",
         "--model", "-m",
-        help="OpenRouter model id to use for inference.",
+        help="Model id to use for inference.",
+    ),
+    base_url: str = typer.Option(
+        "https://openrouter.ai/api/v1",
+        "--base-url", "-b",
+        help="Base URL for the API.",
+    ),
+    api_key: str = typer.Option(
+        None,
+        "--api-key", "-k",
+        help=(
+            "API key for authentication. Defaults to the value of the "
+            "OPENROUTER_API_KEY environment variable."
+        ),
     ),
     list: str = typer.Option(
         "data/eval.txt",
@@ -64,8 +77,8 @@ def main(
 ):
     instruction = Path(FPATH_INSTRUCTION).read_text()
     client = AsyncOpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=env("OPENROUTER_API_KEY")
+        base_url=base_url,
+        api_key=api_key or env("OPENROUTER_API_KEY")
     )
     dpath_images = Path(DPATH_IMAGES)
     with open(list) as f:
@@ -143,7 +156,7 @@ async def call_api(client, model, instruction, fpath_image, reasoning, pbar):
         extra_body={"reasoning": {"enabled": reasoning}},
     )
     res = response.choices[0].message.content
-    cost = response.usage.cost
+    cost = response.usage.model_dump().get("cost", 0)
     json_str = re.search(r'\{.*\}', res, re.DOTALL).group(0)
     data = json.loads(json_str)
     pbar.update(1)
