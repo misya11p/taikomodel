@@ -175,6 +175,10 @@ def evaluate(results, annotated):
             json_errors.append((key, pred["error"]))
             continue
 
+        if pred.keys() != label.keys():
+            json_errors.append((key, f"Key mismatch: {pred.keys()}"))
+            continue
+
         score_name = SequenceMatcher(None, pred["曲名"], label["曲名"]).ratio()
         score_num = sum([pred[idx] == label[idx] for idx in COLUMNS_NUM])
         score_num /= len(COLUMNS_NUM)
