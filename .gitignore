@@ -1,0 +1,9 @@
+data/images/
+data/preprocessed/
+data/experiments/
+data/songs.csv
+
+models/
+
+*.ipynb
+*.parquet
