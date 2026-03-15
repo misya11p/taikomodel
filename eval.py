@@ -236,6 +236,7 @@ def evaluate(results, annotated):
         "曲名平均スコア": avg_score_name,
         "数値平均スコア": avg_score_num,
         "サンプル数": n,
+        "エラー数": len(json_errors),
     }
     classes = {
         "完全一致": correct_keys,
