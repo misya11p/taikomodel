@@ -200,8 +200,13 @@ def evaluate(results, annotated):
             json_errors.append((key, f"Key mismatch: {pred.keys()}"))
             continue
 
-        score_name = SequenceMatcher(None, pred["曲名"], label["曲名"]).ratio()
-        score_num = sum([pred[idx] == label[idx] for idx in COLUMNS_NUM])
+        try:
+            score_name = SequenceMatcher(None, pred["曲名"], label["曲名"]).ratio()
+            score_num = sum([pred[idx] == label[idx] for idx in COLUMNS_NUM])
+        except Exception as e:
+            json_errors.append((key, f"Error comparing predictions: {e}, pred: {pred}"))
+            continue
+
         score_num /= len(COLUMNS_NUM)
         if score_name == 1.0 and score_num == 1.0:
             n_matches += 1
