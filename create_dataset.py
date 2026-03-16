@@ -69,7 +69,7 @@ def get_natural_samples(n):
         annotated = json.load(f)
     with open(FPATH_TRAIN, "r") as f:
         files = f.read().splitlines()
-    n = min(n, len(files)) if n > 0 else len(files)
+    n = min(n, len(files)) if n >= 0 else len(files)
 
     data = []
     for file in files[:n]:
@@ -87,7 +87,7 @@ def get_natural_samples(n):
 
 def get_random_samples(n):
     files = list((DPATH_RANDOM).glob("*.png"))
-    n = min(n, len(files)) if n > 0 else len(files)
+    n = min(n, len(files)) if n >= 0 else len(files)
 
     data = []
     for file in files[:n]:
@@ -105,7 +105,7 @@ def get_random_samples(n):
 
 def get_mimic_samples(n):
     files = list((DPATH_MIMIC).glob("*.png"))
-    n = min(n, len(files)) if n > 0 else len(files)
+    n = min(n, len(files)) if n >= 0 else len(files)
 
     data = []
     for file in files[:n]:
