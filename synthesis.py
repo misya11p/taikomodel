@@ -47,7 +47,13 @@ def main(
         "--dpath-output", "-o",
         help="Directory path to save the generated images. ",
     ),
+    seed: int = typer.Option(
+        0,
+        "--seed",
+        help="Random seed for reproducibility. ",
+    )
 ):
+    random.seed(seed)
     dpath_output = Path(dpath_output)
 
     dpath_output_random = dpath_output / DNAME_RANDOM
@@ -153,13 +159,13 @@ def generate_label_random():
 
 def generate_label_mimic():
     song = random.choice(songs)
-    progress = f"{random.randint(0, 100)}%"
-    score = str(random.randint(0, 1500000))
-    ryo = str(random.randint(0, 1500))
-    ka = str(random.randint(0, 1500))
-    fuka = str(random.randint(0, 1500))
-    combo = str(random.randint(0, 1500))
-    renda = str(random.randint(0, 1500))
+    progress = random.randint(0, 100)
+    score = random.randint(0, 1500000)
+    ryo = random.randint(0, 1500)
+    ka = random.randint(0, 1500)
+    fuka = random.randint(0, 1500)
+    combo = random.randint(0, 1500)
+    renda = random.randint(0, 1500)
     return {
         "曲名": song,
         "進捗率": progress,
@@ -210,27 +216,27 @@ def synthesize_mimic():
     insert_text(draw, (W - text_width - 25, 25), label["曲名"], font_size, "white", 4, 3)
 
     x = random.randint(50, W - 200)
-    insert_text(draw, (x, 100), label["進捗率"], 17, "yellow", 3, 3)
+    insert_text(draw, (x, 100), f"{label['進捗率']}%", 17, "yellow", 3, 3)
 
     insert_text(draw, (80, 160), "スコア", 20, "white", 3, 3)
-    insert_text(draw, (60, 200), label["スコア"], 36, "white", 3, 3)
+    insert_text(draw, (60, 200), str(label["スコア"]), 36, "white", 3, 3)
 
     color = get_random_color((240, 137, 22))
     insert_text(draw, (300, 160), "良", 26, color, 3, 3)
-    insert_text(draw, (400, 160), label["良"], 26, "white", 3, 3)
+    insert_text(draw, (400, 160), str(label["良"]), 26, "white", 3, 3)
 
     insert_text(draw, (300, 200), "可", 26, "white", 3, 3)
-    insert_text(draw, (400, 200), label["可"], 26, "white", 3, 3)
+    insert_text(draw, (400, 200), str(label["可"]), 26, "white", 3, 3)
 
     color = get_random_color((40, 42, 231))
     insert_text(draw, (300, 240), "不可", 26, color, 3, 3)
-    insert_text(draw, (400, 240), label["不可"], 26, "white", 3, 3)
+    insert_text(draw, (400, 240), str(label["不可"]), 26, "white", 3, 3)
 
     insert_text(draw, (520, 180), "最大コンボ数", 20, "black", 0, 3)
-    insert_text(draw, (670, 180), label["最大コンボ数"], 26, "white", 3, 3)
+    insert_text(draw, (670, 180), str(label["最大コンボ数"]), 26, "white", 3, 3)
 
     insert_text(draw, (520, 220), "連打数", 20, "black", 0, 3)
-    insert_text(draw, (670, 220), label["連打数"], 26, "white", 3, 3)
+    insert_text(draw, (670, 220), str(label["連打数"]), 26, "white", 3, 3)
 
     label = json.dumps(label, ensure_ascii=False, indent=2)
     return img, label
