@@ -34,12 +34,12 @@ app = typer.Typer(add_completion=False, context_settings=CONTEXT_SETTINGS)
 def main(
     n_samples_mimic: int = typer.Option(
         100,
-        "--n-samples-mimic", "-n",
+        "--n-samples-mimic", "-m",
         help="Number of samples to generate for mimic dataset. ",
     ),
     n_samples_random: int = typer.Option(
         100,
-        "--n-samples-random", "-m",
+        "--n-samples-random", "-r",
         help="Number of samples to generate for random dataset. ",
     ),
     dpath_output: Path = typer.Option(
