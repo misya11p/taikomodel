@@ -1,9 +1,12 @@
 data/images/
 data/preprocessed/
 data/experiments/
+data/synthetic/
+data/sft/
 data/songs.csv
 
 models/
+assets/
 
-*.ipynb
 *.parquet
+*.txt
