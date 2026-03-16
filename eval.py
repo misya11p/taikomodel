@@ -10,13 +10,14 @@ from environs import env
 import typer
 from tqdm import tqdm
 
+from instruction import inference_instruction
+
 
 env.read_env()
 BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
 BASE_URL_OLLAMA = "http://localhost:11434/v1"
 DPATH_IMAGES = "data/preprocessed/"
 DPATH_DEFAULT_OUTPUT = "data/experiments/"
-FPATH_INSTRUCTION = "instruction.txt"
 FPATH_ANNOTATED = "data/annotated.json"
 COLUMNS_NUM = ["良", "可", "不可", "進捗率", "スコア", "最大コンボ数", "連打数"]
 
@@ -89,7 +90,6 @@ def main(
         ),
     ),
 ):
-    instruction = Path(FPATH_INSTRUCTION).read_text()
     base_url = base_url or (BASE_URL_OLLAMA if ollama else BASE_URL_OPENROUTER)
     client = AsyncOpenAI(
         base_url=base_url,
@@ -112,7 +112,7 @@ def main(
         annotated = json.load(f)
 
     results = asyncio.run(run(
-        model, instruction, client, images, reasoning_effort
+        model, client, images, reasoning_effort
     ))
     cost = sum(result[2] for result in results)
     results = {fpath: data for fpath, data, _ in results}
@@ -135,10 +135,10 @@ def main(
     print(f"Saved summary to {fpath_output_summary}")
 
 
-async def run(model, instruction, client, images, reasoning):
+async def run(model, client, images, reasoning):
     pbar = tqdm(total=len(images))
     results = await asyncio.gather(*[
-        call_api(client, model, instruction, image, reasoning, pbar)
+        call_api(client, model, image, reasoning, pbar)
         for image in images
     ])
     return results
@@ -149,14 +149,14 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-async def call_api(client, model, instruction, fpath_image, reasoning_effort, pbar):
+async def call_api(client, model, fpath_image, reasoning_effort, pbar):
     image_url = f"data:image/jpeg;base64,{encode_image(fpath_image)}"
     response = await client.chat.completions.create(
         model=model,
         messages=[
             {
                 "role": "system",
-                "content": [{"type": "text", "text": instruction}]
+                "content": [{"type": "text", "text": inference_instruction}],
             },
             {
                 "role": "user",
