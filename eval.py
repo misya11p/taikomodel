@@ -16,6 +16,7 @@ from instruction import inference_instruction
 env.read_env()
 BASE_URL_OPENROUTER = "https://openrouter.ai/api/v1"
 BASE_URL_OLLAMA = "http://localhost:11434/v1"
+BASE_URL_LLAMACPP = "http://localhost:8080"
 DPATH_IMAGES = "data/preprocessed/"
 DPATH_DEFAULT_OUTPUT = "data/experiments/"
 FPATH_ANNOTATED = "data/annotated.json"
@@ -57,6 +58,15 @@ def main(
             "'http://localhost:11434/v1'."
         ),
     ),
+    llamacpp: bool = typer.Option(
+        False,
+        "--llamacpp",
+        help=(
+            "Whether to use llamacpp for local inference. If enabled, "
+            "the base URL will automatically be set to "
+            "'http://localhost:8080'."
+        ),
+    ),
     list: str = typer.Option(
         "data/eval.txt",
         "--list", "-l",
@@ -90,7 +100,15 @@ def main(
         ),
     ),
 ):
-    base_url = base_url or (BASE_URL_OLLAMA if ollama else BASE_URL_OPENROUTER)
+    if base_url:
+        base_url = base_url
+    elif ollama:
+        base_url = BASE_URL_OLLAMA
+    elif llamacpp:
+        base_url = BASE_URL_LLAMACPP
+    else:
+        base_url = BASE_URL_OPENROUTER
+
     client = AsyncOpenAI(
         base_url=base_url,
         api_key=api_key or env("OPENROUTER_API_KEY")
